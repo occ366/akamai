@@ -8,7 +8,7 @@ class propieties:
         self.__groupId = groupId
         self.__contractId=contractId
         self.__papiurl="/papi/v1/properties?groupId={}&contractId={}".format(groupId,contractId)
-        self.__headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
+        self.__headers = { 'PAPI-Use-Prefixes' : 'true' }
         
     def reader(JsontoRead):
       """get all propieties in readly format"""
