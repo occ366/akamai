@@ -43,7 +43,7 @@ class propieties:
   
         response=sesson.get(urljoin(baseurl, self.__papiurl),headers=self.__headers)
         
-        if response.status_code != 201:
+        if response.status_code != 200:
             print ('Error {}'.format(response.status_code))
           
         else:
@@ -63,7 +63,7 @@ class propieties:
           response = sesson.get(urljoin(baseurl, papiurl),headers=self.__headers)
       
              
-          if response.status_code != 201:
+          if response.status_code != 200:
             print ('Error {}'.format(response.status_code))
           
         else:
