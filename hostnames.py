@@ -75,3 +75,28 @@ class hostnames:
           
         else:
             return response.json()
+            
+            
+    def addHostname2propiety(propietyId,versionId,domain):
+        papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}&contractId=\
+                               {}&validateHostnames=true&includeCertStatus=true".format(propietyId,versionId,self.__groupId,self.__contractId)
+        
+        send_data = """
+                       {
+                           "add": [
+                                    {
+                                       "cnameType": "EDGE_HOSTNAME",
+                                       "cnameFrom": "%s",
+                                       "cnameTo": "%s.edgesuite.net"
+                                     }
+                                  ]
+                        }""" % (domain,domain)
+                        
+        headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
+        result = sesson.post(urljoin(baseurl, self.__papiurl),data=sent_data,headers=headers)
+        
+        if response.status_code != 201:
+            print ('Error {}'.format(response.status_code))
+          
+        else:
+            return response.json()
