@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from urllib.parse import urljoin 
+
 class cpcodes:
     
     __init__(self,groupId,contractId):
