@@ -4,13 +4,13 @@ from urllib.parse import urljoin
 
 class propieties:
 
-    __init__(self,groupId,contractId):
+    def __init__(self,groupId,contractId):
         self.__groupId = groupId
         self.__contractId=contractId
         self.__papiurl="/papi/v1/properties?groupId={}&contractId={}".format(groupId,contractId)
         self.__headers = { 'PAPI-Use-Prefixes' : 'true' }
         
-    def reader(JsontoRead):
+    def reader(self,connection):
       """get all propieties in readly format"""
                for propiety in response.json()['properties']['items']:
                    print("---------------------------\n \
@@ -39,9 +39,9 @@ class propieties:
       
       
       
-    def getAll(sesson,baseurl,json=True):
+    def getAll(self,connection,baseurl,json=True):
   
-        response=sesson.get(urljoin(baseurl, self.__papiurl),headers=self.__headers)
+        response=connection.get(urljoin(baseurl, self.__papiurl),headers=self.__headers)
         
         if response.status_code != 200:
             print ('Error {}'.format(response.status_code))
@@ -55,12 +55,12 @@ class propieties:
                 reader(response)   
             
               
-      def getPropiety(sesson,baseurl,propietyId,json=True):
+      def getPropiety(self, connection,baseurl,propietyId,json=True):
           
           """get data for one propiety in json format"""
           papiurl = '/papi/v1/properties/{}?groupId={}&contractId={}'.format(propietyId,self.__groupId,self.__contractId)
           
-          response = sesson.get(urljoin(baseurl, papiurl),headers=self.__headers)
+          response = connection.get(urljoin(baseurl, papiurl),headers=self.__headers)
       
              
           if response.status_code != 200:
