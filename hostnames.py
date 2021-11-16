@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from urllib.parse import urljoin
-
+import json
 
 class hostnames:
 
@@ -63,7 +63,7 @@ class hostnames:
                            "ipVersionBehavior": "IPV4"
                         }""" % (productId,domain)
 
-        headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
+        headers = { 'PAPI-Use-Prefixes' : 'true' }
         response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
 
         if response.status_code != 201:
@@ -75,22 +75,18 @@ class hostnames:
 
 
     def addHostnameToPropiety(self,connection,baseurl,propietyId,versionId,domain):
-        papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}\
-                      &contractId={}&validateHostnames=true&includeCertStatus=true"\
+        papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}&contractId={}&validateHostnames=true&includeCertStatus=true"\
                          .format(propietyId,versionId,self.__groupId,self.__contractId)
-        send_data = """
-                       {
-                           "add": [
-                                    {
-                                       "cnameType": "EDGE_HOSTNAME",
-                                       "cnameFrom": "%s",
-                                       "cnameTo": "%s.edgesuite.net"
-                                     }
-                                  ]
-                        }""" % (domain,domain)
 
-        headers = { 'Content-Type' : 'application/json', 'PAPI-Use-Prefixes' : 'true' }
-        response = connection.patch(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+        domainWsub= domain+'.edgesuite.net'
+
+        send_data = """{"add":[{"cnameType": "EDGE_HOSTNAME","cnameFrom": "%s","cnameTo": "%s"}]}""" % (domain,domainWsub)
+
+        print(send_data)
+
+        headers = { 'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' , 'PAPI-Use-Prefixes':'true' }
+
+        response = connection.patch(urljoin(baseurl, papiurl),data=send_data,headers=headers)
 
         if response.status_code != 200:
             print ('Error {}'.format(response.status_code))

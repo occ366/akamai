@@ -26,17 +26,17 @@ def main():
     connect = requests.Session()
     connect.auth = EdgeGridAuth.from_edgerc(edgerc, section)
 
-    g = group()
-    response = g.get(connect,baseurl)
-    print(response.json())
+    #g = group()
+    #response = g.get(connect,baseurl)
+    #print(response.json())
 
-    ps = propieties(groupId,contractId)
-    print(ps.getAll(connect,baseurl,False))
-    print(ps.getPropiety(connect,baseurl,propietyId,json=False))
+    #ps = propieties(groupId,contractId)
+    #print(ps.getAll(connect,baseurl,False))
+    #print(ps.getPropiety(connect,baseurl,propietyId,json=False))
 
-    cpc = cpcode(groupId,contractId)
-    print(cpc.getAll(connect,baseurl,False))
-    print(cpc.getCPcode(connect,baseurl,'cpc_1185062',False))
+    #cpc = cpcode(groupId,contractId)
+    #print(cpc.getAll(connect,baseurl,False))
+    #print(cpc.getCPcode(connect,baseurl,'cpc_1185062',False))
     #print(cpc.createCPcode(connect,baseurl,productId,cpcodeName,json=True))
 
     hn = hostnames(groupId,contractId)
