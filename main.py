@@ -19,6 +19,7 @@ def main():
     productId = 'prd_Adaptive_Media_Delivery'
     cpcodeName = 'test-dev'
     domain='prueba34.com'
+    versionId='13'
 
     edgerc = EdgeRc(path_credential)
     baseurl = 'https://%s' % edgerc.get(section, 'host')
@@ -40,7 +41,8 @@ def main():
 
     hn = hostnames(groupId,contractId)
     print(hn.getAll(connect,baseurl,False))
-    print(hn.createHostname(connect,baseurl,productId,domain))
+    #print(hn.createHostname(connect,baseurl,productId,domain))
+    print(hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,domain))
 
 if __name__ == "__main__":
     main()

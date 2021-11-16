@@ -74,9 +74,10 @@ class hostnames:
             return response.json()
 
 
-    def addHostnameToPropiety(propietyId,versionId,domain):
-        papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}&contractId=\
-                               {}&validateHostnames=true&includeCertStatus=true".format(propietyId,versionId,self.__groupId,self.__contractId)
+    def addHostnameToPropiety(self,connection,baseurl,propietyId,versionId,domain):
+        papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}\
+                      &contractId={}&validateHostnames=true&includeCertStatus=true"\
+                         .format(propietyId,versionId,self.__groupId,self.__contractId)
         send_data = """
                        {
                            "add": [
@@ -88,13 +89,15 @@ class hostnames:
                                   ]
                         }""" % (domain,domain)
 
-        headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
-        response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+        headers = { 'Content-Type' : 'application/json', 'PAPI-Use-Prefixes' : 'true' }
+        response = connection.patch(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
 
-        if response.status_code != 201:
+        if response.status_code != 200:
             print ('Error {}'.format(response.status_code))
             print (response.json())
 
         else:
             return response.json()
 
+    def getHostname(connection,baseurl,edgeHostnameId,contractId,groupId,options):
+        pass
