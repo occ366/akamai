@@ -10,6 +10,7 @@ class hostnames:
         self.__groupId = groupId
         self.__contractId = contractId
         self.__papiurl="/papi/v1/edgehostnames?groupId={}&contractId={}".format(groupId,contractId)
+        self.__allhostname={}
 
     def reader(self,response):
         """get all propieties in readly format"""
@@ -40,6 +41,7 @@ class hostnames:
             print (response.json())
 
         else:
+            self.__allhostnames=response.json()
             if json:
                 """get all hostnames in json format"""
                 return response.json()
@@ -51,27 +53,41 @@ class hostnames:
 
 
     def createHostname(self,connection,baseurl,productId,domain):
-        """get data for one propiety in json format"""
-        papiurl = "/papi/v1/edgehostnames?groupId={}&contractId={}".format(self.__groupId,self.__contractId)
 
-        send_data = """
-                       {
-                           "productId": "%s",
-                           "domainPrefix": "%s",
-                           "domainSuffix": "edgesuite.net",
-                           "secureNetwork": "STANDARD_TLS",
-                           "ipVersionBehavior": "IPV4"
-                        }""" % (productId,domain)
-
-        headers = { 'PAPI-Use-Prefixes' : 'true' }
-        response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
-
-        if response.status_code != 201:
-            print ('Error {}'.format(response.status_code))
-            print(response.json())
+        if self.checkIfExist(domian):
+            print("Domain {} exists already!!!".format(domain))
 
         else:
-            return response.json()
+            """get data for one propiety in json format"""
+            papiurl = "/papi/v1/edgehostnames?groupId={}&contractId={}".format(self.__groupId,self.__contractId)
+
+            send_data = """
+                           {
+                              "productId": "%s",
+                              "domainPrefix": "%s",
+                              "domainSuffix": "edgesuite.net",
+                              "secureNetwork": "STANDARD_TLS",
+                              "ipVersionBehavior": "IPV4"
+                           }""" % (productId,domain)
+
+            headers = { 'PAPI-Use-Prefixes' : 'true' }
+            response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+
+            if response.status_code != 201:
+                print ('Error {}'.format(response.status_code))
+                print (response.json())
+
+            else:
+                return response.json()
+
+
+    def checkIfExist(self,domain):
+        """ check if the hostname exist  """
+        for edgehostname in self.__allhostname['edgeHostnames']['items']:
+            if domain in edgehostname['edgeHostnameDomain']:
+                return = True
+
+        return False
 
 
     def addHostnameToPropiety(self,connection,baseurl,propietyId,versionId,domain):
@@ -81,8 +97,6 @@ class hostnames:
         domainWsub= domain+'.edgesuite.net'
 
         send_data = """{"add":[{"cnameType": "EDGE_HOSTNAME","cnameFrom": "%s","cnameTo": "%s"}]}""" % (domain,domainWsub)
-
-        print(send_data)
 
         headers = { 'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' , 'PAPI-Use-Prefixes':'true' }
 
@@ -94,6 +108,7 @@ class hostnames:
 
         else:
             return response.json()
+
 
     def getHostname(connection,baseurl,edgeHostnameId,contractId,groupId,options):
         pass

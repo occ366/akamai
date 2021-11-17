@@ -28,9 +28,10 @@ def main():
     hn = hostnames(groupId,contractId)
     rl = rules(propietyId,versionId,groupId,contractId)
 
-    cpcodes = cpc.getAll(connect,baseurl,True)
-    hostnames = hn.getAll(connect,baseurl,True)
-    rules = rl.getAll(connect,baseurl,True)
+    cpc.getAll(connect,baseurl,True)
+    hn.getAll(connect,baseurl,True)
+    rl.getAll(connect,baseurl,True)
+    newChildrens=[]
 
     with open(path_file)  as file :
 
@@ -39,10 +40,19 @@ def main():
             bucketId,name,hostname = line.split()
             hostname=re.sub('[\["\]]','',hostname)
 
+            #create hostname and add to the propiety
+            hn.createHostname(connect,baseurl,productId,hostname)
+            hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
+
             #create a cpcode for one bucket
             respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
             cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
 
+            #build the rules for this  step
+            newChilderns.append(rl.createJson(bucketId,name,hostname,re.sub('cpc_','',cpcodeID)))
+
+    #update the new rules on the propiety.
+    
 
     #g = group()
     #response = g.get(connect,baseurl)
@@ -67,3 +77,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
