@@ -1,11 +1,9 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 
 import requests
 import re
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from urllib.parse import urljoin
-from group import group
-from propieties import propieties
 from cpcode import cpcode
 from hostnames import hostnames
 from rules import rules
@@ -14,12 +12,12 @@ def main():
 
     path_file = '/home/ocuellas/buckets_tde_live.txt'
     path_credential='~/.edgerc'
-    section = 'ocuellas'
-    groupId='grp_190994'
-    contractId='ctr_P-3RG8LCE'
-    propietyId='prp_694869'
+    section = 'jorge'
+    groupId='grp_93936'
+    contractId='ctr_M-20JBZC4'
+    propietyId='prp_678848'
     productId = 'prd_Adaptive_Media_Delivery'
-    versionId='20'
+    versionId='13'
 
     edgerc = EdgeRc(path_credential)
     baseurl = 'https://%s' % edgerc.get(section, 'host')
@@ -30,6 +28,10 @@ def main():
     hn = hostnames(groupId,contractId)
     rl = rules(propietyId,versionId,groupId,contractId)
 
+    cpcodes = cpc.getAll(connect,baseurl,True)
+    hostnames = hn.getAll(connect,baseurl,True)
+    rules = rl.getAll(connect,baseurl,True)
+
     with open(path_file)  as file :
 
         for line in file.readlines():
@@ -37,7 +39,9 @@ def main():
             bucketId,name,hostname = line.split()
             hostname=re.sub('[\["\]]','',hostname)
 
-            
+            #create a cpcode for one bucket
+            respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
+            cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
 
 
     #g = group()
