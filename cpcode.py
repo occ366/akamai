@@ -66,11 +66,11 @@ class cpcode:
         
         cpcodeID = self.checkIfExist(self,cpcodeName) 
 
-       if cpcodeID:
+        if cpcodeID:
 
-          return cpcodeID
+            return cpcodeID
 
-       else:
+        else:
 
             """create a new CPcode"""
             send_data = """
@@ -86,7 +86,7 @@ class cpcode:
                 print ('Error {}'.format(response.status_code))
                 print(response.json())
 
-           else:
+            else:
                 return response.json()
 
 
