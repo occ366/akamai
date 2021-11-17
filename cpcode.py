@@ -9,6 +9,7 @@ class cpcode:
         self.__groupId = groupId
         self.__contractId = contractId
         self.__papiurl="/papi/v1/cpcodes?groupId={}&contractId={}".format(groupId,contractId)
+        self.__allcpcodes = {}
 
     def reader(self,response):
         """get all propieties in readly format"""
@@ -33,6 +34,7 @@ class cpcode:
              print(response.json())
 
         else:
+            self:__allcpcode=response.json()
             if json:
                 """get all propieties in json format"""
                 return response.json()
@@ -61,19 +63,40 @@ class cpcode:
 
 
     def createCPcode(self,connection,baseurl,productId,cpcodeName,json=True):
-        """create a new CPcode"""
-        send_data = """
-                      {
-                          "productId": "%s",
-                          "cpcodeName": "%s"
-                      }""" % (productId,cpcodeName)
+        
+        cpcodeID = self.checkIfExist(self,cpcodeName) 
 
-        headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
-        response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+       if cpcodeID:
 
-        if response.status_code != 201:
-            print ('Error {}'.format(response.status_code))
-            print(response.json())
- 
-        else:
-            return response.json()
+          return cpcodeID
+
+       else:
+
+            """create a new CPcode"""
+            send_data = """
+                          {
+                              "productId": "%s",
+                              "cpcodeName": "%s"
+                          }""" % (productId,cpcodeName)
+
+            headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
+            response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+
+            if response.status_code != 201:
+                print ('Error {}'.format(response.status_code))
+                print(response.json())
+
+           else:
+                return response.json()
+
+
+    def checkIfExist(self,cpcodeName):
+        """ check the cpcname if exit return de cpcodeId """
+        rback = False
+
+        for cpcode in self.__allcpcodes['cpcodes']['items']:
+            if name in cpcode['cpcodeName']:
+               rback = cpcode['cpcodeId']
+
+        return rback
+
