@@ -8,6 +8,21 @@ from cpcode import cpcode
 from hostnames import hostnames
 from rules import rules
 
+import logging
+from logging import FileHandler
+from logging import Formatter
+
+
+LOG_PATH='/tmp/akamai_papi.log'
+LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
+
+logger = logging.getLogger('debug')
+logger.setLevel(logging.DEBUG)
+logger_file_handler = FileHandler(LOG_PATH)
+logger_file_handler.setLevel(logging.DEBUG)
+logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
+logger.addHandler(logger_file_handler)
+
 def main():
 
     path_file = '/home/ocuellas/buckets_tde_live.txt'
@@ -30,50 +45,38 @@ def main():
 
     cpc.getAll(connect,baseurl,True)
     hn.getAll(connect,baseurl,True)
-    rl.getAll(connect,baseurl,True)
     newChildrens=[]
 
-    with open(path_file)  as file :
+    try:
+        with open(path_file)  as file :
 
-        for line in file.readlines():
+           for line in file.readlines():
 
-            bucketId,name,hostname = line.split()
-            hostname=re.sub('[\["\]]','',hostname)
+               bucketId,name,hostname = line.split()
+               hostname=re.sub('[\["\]]','',hostname)
 
-            #create hostname and add to the propiety
-            hn.createHostname(connect,baseurl,productId,hostname)
-            hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
+               #create hostname and add to the propiety
+               hn.createHostname(connect,baseurl,productId,hostname)
+               hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
 
-            #create a cpcode for one bucket
-            respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
-            cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
+               #create a cpcode for one bucket
+               respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
+               cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
 
-            #build the rules for this  step
-            newChilderns.append(rl.createJson(bucketId,name,hostname,re.sub('cpc_','',cpcodeID)))
+               #build the rules for this  step
+               rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
+
+
+    except e:
+        print('main(): file '+ str(self.__path_file) + ' doesnt exist')
+        logger.error('main(): file '+ str(self.__path_file) + ' doesnt exist')
+        exit(1)
 
     #update the new rules on the propiety.
-    
+    rl.createSetRules(connection,baseurl)
 
-    #g = group()
-    #response = g.get(connect,baseurl)
-    #print(response.json())
+    connect.close()
 
-    #ps = propieties(groupId,contractId)
-    #print(ps.getAll(connect,baseurl,False))
-    #print(ps.getPropiety(connect,baseurl,propietyId,json=False))
-
-    #cpc = cpcode(groupId,contractId)
-    #print(cpc.getAll(connect,baseurl,False))
-    #print(cpc.getCPcode(connect,baseurl,'cpc_1185062',False))
-    #print(cpc.createCPcode(connect,baseurl,productId,cpcodeName,json=True))
-
-    #hn = hostnames(groupId,contractId)
-    #print(hn.getAll(connect,baseurl,False))
-    #print(hn.createHostname(connect,baseurl,productId,domain))
-    #print(hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,domain))
-
-    #r = rules(propietyId,versionId,groupId,contractId)
-    #print(r.getAll(connect,baseurl,True))
 
 if __name__ == "__main__":
     main()
