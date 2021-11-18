@@ -2,7 +2,6 @@
 
 from urllib.parse import urljoin
 
-
 LOG_PATH='/tmp/akamai_papi.log'
 LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
 
