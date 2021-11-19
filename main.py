@@ -8,24 +8,13 @@ from cpcode import cpcode
 from hostnames import hostnames
 from rules import rules
 
-import logging
-from logging import FileHandler
-from logging import Formatter
+from logger import get_module_logger
+logger = get_module_logger('debug')
 
-
-LOG_PATH='/tmp/akamai_papi.log'
-LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
-
-logger = logging.getLogger('debug')
-logger.setLevel(logging.DEBUG)
-logger_file_handler = FileHandler(LOG_PATH)
-logger_file_handler.setLevel(logging.DEBUG)
-logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-logger.addHandler(logger_file_handler)
 
 def main():
 
-    path_file = '/home/ocuellas/buckets_tde_live.txt'
+    path_file = '/home/ocuellas/prueba_telemadrid.txt'
     path_credential='~/.edgerc'
     section = 'jorge'
     groupId='grp_93936'
@@ -39,41 +28,45 @@ def main():
     connect = requests.Session()
     connect.auth = EdgeGridAuth.from_edgerc(edgerc, section)
 
-    cp = cpcode(groupId,contractId)
+    cpc = cpcode(groupId,contractId)
     hn = hostnames(groupId,contractId)
     rl = rules(propietyId,versionId,groupId,contractId)
 
     cpc.getAll(connect,baseurl,True)
     hn.getAll(connect,baseurl,True)
-    newChildrens=[]
+    rl.getAll(connect,baseurl)
 
-    try:
-        with open(path_file)  as file :
+    logger.info('------- Starting a new Execution---------') 
+    #try:
+    with open(path_file)  as file :
 
-           for line in file.readlines():
+       for line in file.readlines():
+            bucketId,name,hostname = line.split()
+            hostname=re.sub('[\["\]]','',hostname)
 
-               bucketId,name,hostname = line.split()
-               hostname=re.sub('[\["\]]','',hostname)
-
-               #create hostname and add to the propiety
-               hn.createHostname(connect,baseurl,productId,hostname)
-               hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
-
-               #create a cpcode for one bucket
-               respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
-               cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
-
-               #build the rules for this  step
-               rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
+            logger.info('updating bucket: {}'.format(bucketId))
 
 
-    except e:
-        print('main(): file '+ str(self.__path_file) + ' doesnt exist')
-        logger.error('main(): file '+ str(self.__path_file) + ' doesnt exist')
-        exit(1)
+            #create hostname and add to the propiety
+            hn.createHostname(connect,baseurl,productId,hostname)
+            hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
+            #create a cpcode for one bucket
+
+            cpcodeID = cpc.createCPcode(connect,baseurl,productId,name)
+
+            #build the rules for this  step
+
+            rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
+
+
+
+    #except:
+        #print('main(): file  {} doesnt exist'.format(path_file))
+        #logger.error('main(): file {} doesnt exist'.format(path_file))
+        #exit(1)
 
     #update the new rules on the propiety.
-    rl.createSetRules(connection,baseurl)
+    #rl.createSetRules(connect,baseurl)
 
     connect.close()
 

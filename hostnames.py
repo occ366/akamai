@@ -3,15 +3,12 @@
 from urllib.parse import urljoin
 import json
 
-LOG_PATH='/tmp/akamai_papi.log'
-LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
+import logging
+from logging import FileHandler
+from logging import Formatter
 
-logger = logging.getLogger('debug')
-logger.setLevel(logging.DEBUG)
-logger_file_handler = FileHandler(LOG_PATH)
-logger_file_handler.setLevel(logging.DEBUG)
-logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-logger.addHandler(logger_file_handler)
+from logger import get_module_logger
+logger = get_module_logger('debug')
 
 class hostnames:
 
@@ -20,12 +17,12 @@ class hostnames:
         self.__groupId = groupId
         self.__contractId = contractId
         self.__papiurl="/papi/v1/edgehostnames?groupId={}&contractId={}".format(groupId,contractId)
-        self.__allhostname={}
+
 
     def reader(self,response):
         """get all propieties in readly format"""
         try:
-            for edgehostname in response.json()['edgeHostnames']['items']:
+            for edgehostname in response.json()['edgehostnames']['items']:
                 print("---------------------------\n \
                        EdgeHostnameId {}\n \
                        EdgeHostnameDomain : {}\n \
@@ -41,8 +38,8 @@ class hostnames:
                                                       edgehostname['secure'], \
                                                       edgehostname['ipVersionBehavior'])
                      )
-        except e:
-            logger.error('hostnames.reader(), Error on values'))
+        except:
+            logger.error('hostnames.reader(), Error on values')
 
 
     def getAll(self,connection,baseurl,json=True):
@@ -67,7 +64,7 @@ class hostnames:
 
     def createHostname(self,connection,baseurl,productId,domain):
 
-        if self.checkIfExist(domian):
+        if self.checkIfExist(domain):
             logger.info("hostname.createHostname(): Domain {} exists already!!!".format(domain))
 
         else:
@@ -83,28 +80,30 @@ class hostnames:
                               "ipVersionBehavior": "IPV4"
                            }""" % (productId,domain)
 
-            headers = { 'PAPI-Use-Prefixes' : 'true' }
+            headers = {'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' ,'PAPI-Use-Prefixes' : 'true' }
             response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
 
             if response.status_code != 201:
-                logger.error ('cpcode.createHostname(): Error, code {} on call'.format(response.status_code))
+                logger.error ('hostname.createHostname(): Error, code {} on call'.format(response.status_code))
                 logger.error (response.json())
 
             else:
-                return response.json()
+                logger.info ('hostname.createHostname(): Hostname create: {}'.format(domain))
+
 
 
     def checkIfExist(self,domain):
         """ check if the hostname exist  """
-        for edgehostname in self.__allhostname['edgeHostnames']['items']:
+
+        for edgehostname in self.__allhostnames['edgeHostnames']['items']:
             if domain in edgehostname['edgeHostnameDomain']:
-                return = True
+                return  True
 
         return False
 
 
     def addHostnameToPropiety(self,connection,baseurl,propietyId,versionId,domain):
-        """ add a cerate hostname to a version of one propiety  """
+        """ add a create hostname to a version of one propiety  """
 
         papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}&contractId={}&validateHostnames=true&includeCertStatus=true"\
                          .format(propietyId,versionId,self.__groupId,self.__contractId)
@@ -116,11 +115,11 @@ class hostnames:
         response = connection.patch(urljoin(baseurl, papiurl),data=send_data,headers=headers)
 
         if response.status_code != 200:
-            logger.error ('cpcode.addHostnameToPropiety(): Error, code {} on call'.format(response.status_code))
+            logger.error ('hostname.addHostnameToPropiety(): Error, code {} on call'.format(response.status_code))
             logger.error (response.json())
 
         else:
-            return response.json()
+            logger.info('hostname.addHostnameToPropiety(): hostname added: {}'.format(domain))
 
 
     def getHostname(connection,baseurl,edgeHostnameId,contractId,groupId,options):

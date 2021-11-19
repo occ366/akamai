@@ -3,16 +3,12 @@
 from urllib.parse import urljoin
 import json
 
-LOG_PATH='/tmp/akamai_papi.log'
-LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
+import logging
+from logging import FileHandler
+from logging import Formatter
 
-logger = logging.getLogger('debug')
-logger.setLevel(logging.DEBUG)
-logger_file_handler = FileHandler(LOG_PATH)
-logger_file_handler.setLevel(logging.DEBUG)
-logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-logger.addHandler(logger_file_handler)
-
+from logger import get_module_logger
+logger = get_module_logger('debug')
 
 class rules:
 
@@ -22,10 +18,6 @@ class rules:
         self.__contractId = contractId
         self.__versionId=versionId
         self.__papiurl="/papi/v1/properties/{}/versions/{}/rules?groupId={}&contractId={}".format(propietyId,versionId,groupId,contractId)
-        self.__oldOriginAndCpcode={}
-        self.__newOriginAndCpcode_list=[]
-        self.__oldSetRules={}
-
 
     def getAll(self,connection,baseurl):
 
@@ -42,8 +34,9 @@ class rules:
                     if children["name"] in 'Origins & CP Codes':
                        self.__newOriginAndCpcode_list = children["children"]
                        self.__oldOriginAndCpcode = children
-            except e:
-               logger.error('Problem to find rules on rules.get()')
+                       
+            except:
+               logger.error('rule.getall(): Problem to find rules')
 
 
     def createSetRules(self,connection,baseurl):
@@ -54,24 +47,26 @@ class rules:
         result = connection.put(urljoin(baseurl, self.__papiurl),data=self.createNewSetOfRules(),headers=headers)
 
         if response.status_code != 201:
-            logger.error ('Error, code {} on rule.createSetRules() call'.format(response.status_code))
+            logger.error('rules.createSetRules(): Error, code {} on call'.format(response.status_code))
             logger.error(response.json())
 
         else:
-            return response.json()
+            logger.info('rules.createSetRules(): Create a new set of rules')
+            logger.info(response.json())
 
 
     def addOriginAndCpcode(self,bucketId,name,hostname,cpcodeID):
         """add a new origin and cpcode on Origin & cpcodes """
+
         if name in self.__oldOriginAndCpcode["children"]:
-            logger.info ('rules.addOriginAndCpcode(): Channel {} already Exist'format(name))
+            logger.info('rules.addOriginAndCpcode(): Channel {} already Exist'.format(name))
 
         else:
             self.__newOriginAndCpcode_list.append(self.createJson(bucketId,name,hostname,cpcodeID))
             logger.info('rules.addOriginAndCpcode(): Add a new origin&cpcode')
 
 
-    def createJson(self,bucketId,name,hostname,cpcodeID):
+    def createJson(self,bucketId,name,hostname,cpcodeId):
         """ Create json for each new entry """
         edomain="e{}.1.cdn.telefonica.com".format(bucketId)
         send_data = """
@@ -125,7 +120,7 @@ class rules:
                                                        }
                                          } ],
                          "criteriaMustSatisfy" : "all"
-                       }""" % (cpcodeId,name,name,edomain,hostname)
+                       }""" % (name,cpcodeId,name,name,edomain,hostname)
 
         logger.info('rules.createNewSetOfRules(): New cpcode and origin has been created: ' + send_data)
 

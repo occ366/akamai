@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
 
 from urllib.parse import urljoin
+import re
 
-import logging
-from logging import FileHandler
-from logging import Formatter
-
-
-LOG_PATH='/tmp/akamai_papi.log'
-LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
-
-logger = logging.getLogger('debug')
-logger.setLevel(logging.DEBUG)
-logger_file_handler = FileHandler(LOG_PATH)
-logger_file_handler.setLevel(logging.DEBUG)
-logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-logger.addHandler(logger_file_handler)
-
+from logger import get_module_logger
+logger = get_module_logger('debug')
 
 class cpcode:
 
@@ -25,10 +13,10 @@ class cpcode:
         self.__groupId = groupId
         self.__contractId = contractId
         self.__papiurl="/papi/v1/cpcodes?groupId={}&contractId={}".format(groupId,contractId)
-        self.__allcpcodes = {}
+
 
     def reader(self,response):
-        """get all propieties in readly format"""
+        """get all cpcodes in readly format"""
         try:
             for cpcode in response.json()['cpcodes']['items']:
                  print("---------------------------\n \
@@ -40,7 +28,7 @@ class cpcode:
                                                     cpcode['productIds'], \
                                                     cpcode['createdDate'])
                       )
-        except e:
+        except:
             logger.error('cpcode.reader(), Error on values') 
 
     def getAll(self,connection,baseurl,json=True):
@@ -53,7 +41,7 @@ class cpcode:
              logger.error(response.json())
 
         else:
-            self:__allcpcode=response.json()
+            self.__allcpcodes=response.json()
             if json:
                 """get all propieties in json format"""
                 return response.json()
@@ -70,8 +58,8 @@ class cpcode:
         response=connection.get(urljoin(baseurl, papiurl),headers=headers)
 
         if response.status_code != 200:
-            logger.error ('cpcode.getCPcode: Error, code {} on call'.format(response.status_code))
-            logger.error (response.json())
+            logger.error('cpcode.getCPcode: Error, code {} on call'.format(response.status_code))
+            logger.error(response.json())
 
         else:
             if json:
@@ -83,12 +71,13 @@ class cpcode:
 
     def createCPcode(self,connection,baseurl,productId,cpcodeName,json=True):
 
-        cpcodeID = self.checkIfExist(self,cpcodeName) 
+        cpcodeID = self.checkIfExist(cpcodeName) 
 
         if cpcodeID:
 
-            return cpcodeID
             logger.info('cpcode.createCPcode(): cpcode for {} already exists {}'.format(cpcodeName,cpcodeID))
+            return cpcodeID
+
 
         else:
 
@@ -103,11 +92,13 @@ class cpcode:
             response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
 
             if response.status_code != 201:
-                logger.error('cpcode.createCPcode(): Error, code {} on call'.format(response.status_code))
-                logger.error(response.json())
+                logging.error('cpcode.createCPcode(): Error, code {} on call'.format(response.status_code))
+                logging.error(response.json())
 
             else:
-                return response.json()
+                cpcodeID = re.search(r'cpc_\d+', response.json()['cpcodeLink'])[0]
+                logger.info('cpcode.createCPcode(): create new cpcode, code {} on call'.format(cpcodeID))
+                return  cpcodeID
 
 
     def checkIfExist(self,cpcodeName):
@@ -115,7 +106,7 @@ class cpcode:
         rback = False
 
         for cpcode in self.__allcpcodes['cpcodes']['items']:
-            if name in cpcode['cpcodeName']:
+            if cpcodeName in cpcode['cpcodeName']:
                rback = cpcode['cpcodeId']
 
         return rback
