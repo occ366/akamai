@@ -34,17 +34,18 @@ class rules:
                     if children["name"] in 'Origins & CP Codes':
                        self.__newOriginAndCpcode_list = children["children"]
                        self.__oldOriginAndCpcode = children
-                       
+
             except:
                logger.error('rule.getall(): Problem to find rules')
 
 
     def createSetRules(self,connection,baseurl):
+
         """create a set of new rules """
 
         headers = { 'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' , 'PAPI-Use-Prefixes':'true' }
 
-        result = connection.put(urljoin(baseurl, self.__papiurl),data=self.createNewSetOfRules(),headers=headers)
+        response = connection.put(urljoin(baseurl, self.__papiurl),data=self.createNewSetOfRules(),headers=headers)
 
         if response.status_code != 201:
             logger.error('rules.createSetRules(): Error, code {} on call'.format(response.status_code))
@@ -56,6 +57,7 @@ class rules:
 
 
     def addOriginAndCpcode(self,bucketId,name,hostname,cpcodeID):
+
         """add a new origin and cpcode on Origin & cpcodes """
 
         if name in self.__oldOriginAndCpcode["children"]:
@@ -67,78 +69,56 @@ class rules:
 
 
     def createJson(self,bucketId,name,hostname,cpcodeId):
+
         """ Create json for each new entry """
         edomain="e{}.1.cdn.telefonica.com".format(bucketId)
-        send_data = """
-                       {
-                          "name" : "%s",
-                          "children" : [ ],
-                          "behaviors" : [ {
-                                            "name" : "cpCode",
-                                            "options" : {
-                                                          "value" : {
-                                                                       "id": %s,
-                                                                       "description" : "%s",
-                                                                       "products" : [ "Adaptive_Media_Delivery" ],
-                                                                       "name" : "%s"
-                                                                    }
-                                                        }
-                                           }, {
-                                                 "name" : "origin",
-                                                 "options" : {
-                                                               "originType" : "CUSTOMER",
-                                                               "hostname" : "%s",
-                                                               "forwardHostHeader" : "ORIGIN_HOSTNAME",
-                                                               "cacheKeyHostname" : "ORIGIN_HOSTNAME",
-                                                               "compress" : true,
-                                                               "enableTrueClientIp" : true,
-                                                               "originCertificate" : "",
-                                                               "verificationMode" : "CUSTOM",
-                                                               "ports" : "",
-                                                               "httpPort" : 8000,
-                                                               "httpsPort" : 8000,
-                                                               "trueClientIpHeader" : "True-Client-IP",
-                                                               "trueClientIpClientSetting" : false,
-                                                               "originSni" : true,
-                                                               "customValidCnValues" : [ "{{Origin Hostname}}", "{{Forward Host Header}}" ],
-                                                               "originCertsToHonor" : "STANDARD_CERTIFICATE_AUTHORITIES",
-                                                               "standardCertificateAuthorities" : [ "akamai-permissive" ]
-                                                              }
-                                           }, {
-                                                "name" : "originCharacteristics",
-                                                "options" : {
-                                                "country" : "EUROPE",
-                                                "authenticationMethodTitle" : "",
-                                                "authenticationMethod" : "AUTOMATIC"
-                                              }
-                                           } ],
-                          "criteria" : [ {
-                                           "name" : "hostname",
-                                           "options" : {
-                                                          "matchOperator" : "IS_ONE_OF",
-                                                          "values" : [ "%s" ]
-                                                       }
-                                         } ],
-                         "criteriaMustSatisfy" : "all"
-                       }""" % (name,cpcodeId,name,name,edomain,hostname)
 
-        logger.info('rules.createNewSetOfRules(): New cpcode and origin has been created: ' + send_data)
+        #TO DO, extract a jsmodel forn origins and cpcodes, an just remolace values by keys
+        send_data = { "name" : name, "children": [ ],"behaviors" : [ {"name" : "cpCode","options" : { "value" : \
+                    { "id": cpcodeId,"description" : name ,"products" : [ "Adaptive_Media_Delivery" ],"name" : name}}}, {"name" : "origin", \
+                      "options" : {"originType" : "CUSTOMER","hostname" : edomain,"forwardHostHeader" : "ORIGIN_HOSTNAME", \
+                      "cacheKeyHostname" : "ORIGIN_HOSTNAME","compress" : True ,"enableTrueClientIp" : True ,"originCertificate" : "",\
+                      "verificationMode" : "CUSTOM","ports" : "","httpPort" : 8000,"httpsPort" : 8000,"trueClientIpHeader" : "True-Client-IP",\
+                      "trueClientIpClientSetting" : False ,"originSni" : True ,"customValidCnValues" : [ "{{Origin Hostname}}", "{{Forward Host Header}}" ], \
+                      "originCertsToHonor" : "STANDARD_CERTIFICATE_AUTHORITIES","standardCertificateAuthorities" : [ "akamai-permissive" ]} \
+                    }, {"name" : "originCharacteristics","options" : {"country" : "EUROPE","authenticationMethodTitle" : "", \
+                        "authenticationMethod" : "AUTOMATIC"}} ],"criteria" : [ {"name" : "hostname","options" : { "matchOperator" : "IS_ONE_OF", \
+                        "values" : [ hostname ]}} ],"criteriaMustSatisfy" : "all"}
 
-        return json.dumps(send_data)
+        logger.info('rules.createNewSetOfRules(): New cpcode and origin has been created: {}'.format(send_data))
+
+        return send_data
 
 
-    def createNewSetOfRules():
+    def createNewSetOfRules(self):
+
         """build a new json to put in akamai """
         newSetRules = self.__oldSetRules
         newOriginAndCpcode = self.__oldOriginAndCpcode
 
         newOriginAndCpcode["children"] = self.__newOriginAndCpcode_list
-        position = newSetRules["rules"]["children"].index(self.__oldOriginAndCpcode)
-        new_rules_children = newSetRules["rules"]["children"].pop(position)
-        new_rules_children = new_rule_childre.insert(position,  newOriginAndCpcode)
 
-        newSetRules["rules"]["children"]=new_rules_children
+        index=0
 
-        logger.info('rules.createNewSetOfRules(): New set of rules has been created: ' + newSetRules)
+        for children in newSetRules["rules"]["children"]:
+            if children['name']  in 'Origins & CP Codes':
+                newSetRules["rules"]["children"][index]=newOriginAndCpcode
+            else:
+                index+=1
+
+        #position = self.__oldSetRules["rules"]["children"].index(self.__oldOriginAndCpcode)
+
+        #new_rules_children = newSetRules["rules"]["children"].pop(position)
+        #new_rules_children = new_rule_childre.insert(position,  newOriginAndCpcode)
+
+        #newSetRules["rules"]["children"]=new_rules_children
+
+        logger.info('rules.createNewSetOfRules(): New set of rules has been created: {}'.format(newSetRules))
 
         return newSetRules
+
+
+
+    def getCreatedOriginAndCpcodes(self):
+
+        print(self.__newOriginAndCpcode_list)
