@@ -7,8 +7,8 @@ import logging
 from logging import FileHandler
 from logging import Formatter
 
-from logger import get_module_logger
-logger = get_module_logger('debug')
+import logging
+logger = logging.getLogger(__name__)
 
 class hostnames:
 

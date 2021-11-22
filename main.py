@@ -8,8 +8,20 @@ from cpcode import cpcode
 from hostnames import hostnames
 from rules import rules
 
-from logger import get_module_logger
-logger = get_module_logger('debug')
+import logging
+
+global logger
+
+LOG_PATH='/tmp/akamai_papi.log'
+LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s")
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+logger_file_handler = logging.FileHandler(LOG_PATH)
+logger_file_handler.setLevel(logging.DEBUG)
+logger_file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+logger.addHandler(logger_file_handler)
+
 
 
 def main():
@@ -30,7 +42,7 @@ def main():
 
     logger.info('------- Starting a new Execution---------')
 
-    try: 
+    try:
 
         cpc = cpcode(groupId,contractId)
         hn = hostnames(groupId,contractId)
@@ -47,31 +59,29 @@ def main():
     rl.getAll(connect,baseurl)
 
     try:
-         with open(path_file)  as file :
+        with open(path_file)  as file :
 
-            for line in file.readlines():
+             for line in file.readlines():
 
-                bucketId,name,hostname = line.split()
-                hostname=re.sub('[\["\]]','',hostname)
+                 bucketId,name,hostname = line.split()
+                 hostname=re.sub('[\["\]]','',hostname)
 
-                logger.info('updating bucket: {}'.format(bucketId))
+                 logger.info('updating bucket: {}'.format(bucketId))
 
 
-                #create hostname and add to the propiety
-                hn.createHostname(connect,baseurl,productId,hostname)
-                hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
-                #create a cpcode for one bucket
+                 #create hostname and add to the propiety
+                 hn.createHostname(connect,baseurl,productId,hostname)
+                 hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
 
-                cpcodeID = cpc.createCPcode(connect,baseurl,productId,name)
+                 #create a cpcode for one bucket
+                 cpcodeID = cpc.createCPcode(connect,baseurl,productId,name)
 
-                #build the rules for this  step
-
-                rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
+                 #build the rules for this  step
+                 rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
 
 
 
     except:
-        print('main(): file  {} doesnt exist'.format(path_file))
         logger.error('main(): file {} doesnt exist'.format(path_file))
         exit(1)
 

@@ -2,13 +2,10 @@
 
 from urllib.parse import urljoin
 import json
+import re
 
 import logging
-from logging import FileHandler
-from logging import Formatter
-
-from logger import get_module_logger
-logger = get_module_logger('debug')
+logger = logging.getLogger(__name__)
 
 class rules:
 
@@ -17,6 +14,8 @@ class rules:
         self.__groupId = groupId
         self.__contractId = contractId
         self.__versionId=versionId
+        self.__propietyId = propietyId
+
         self.__papiurl="/papi/v1/properties/{}/versions/{}/rules?groupId={}&contractId={}".format(propietyId,versionId,groupId,contractId)
 
     def getAll(self,connection,baseurl):
@@ -43,9 +42,13 @@ class rules:
 
         """create a set of new rules """
 
+        papiurl='/papi/v1/properties/{}/versions/{}/rules?groupId={}&contractId={}&validateRules=false'.format(self.__propietyId,self.__versionId,self.__groupId,self.__contractId)
+
         headers = { 'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' , 'PAPI-Use-Prefixes':'true' }
 
-        response = connection.put(urljoin(baseurl, self.__papiurl),data=self.createNewSetOfRules(),headers=headers)
+        send_data = self.createNewSetOfRules()
+
+        response = connection.put(urljoin(baseurl, papiurl),data=send_data,headers=headers)
 
         if response.status_code != 201:
             logger.error('rules.createSetRules(): Error, code {} on call'.format(response.status_code))
@@ -73,9 +76,11 @@ class rules:
         """ Create json for each new entry """
         edomain="e{}.1.cdn.telefonica.com".format(bucketId)
 
+        cpCodeId=int(re.sub('cpc_','',cpcodeId))
+
         #TO DO, extract a jsmodel forn origins and cpcodes, an just remolace values by keys
         send_data = { "name" : name, "children": [ ],"behaviors" : [ {"name" : "cpCode","options" : { "value" : \
-                    { "id": cpcodeId,"description" : name ,"products" : [ "Adaptive_Media_Delivery" ],"name" : name}}}, {"name" : "origin", \
+                    { "id": cpCodeId,"description" : name ,"products" : [ "Adaptive_Media_Delivery" ],"name" : name}}}, {"name" : "origin", \
                       "options" : {"originType" : "CUSTOMER","hostname" : edomain,"forwardHostHeader" : "ORIGIN_HOSTNAME", \
                       "cacheKeyHostname" : "ORIGIN_HOSTNAME","compress" : True ,"enableTrueClientIp" : True ,"originCertificate" : "",\
                       "verificationMode" : "CUSTOM","ports" : "","httpPort" : 8000,"httpsPort" : 8000,"trueClientIpHeader" : "True-Client-IP",\
@@ -106,6 +111,8 @@ class rules:
             else:
                 index+=1
 
+        newSetRules['warnings']=[]
+        newSetRules['errors']=[]
         #position = self.__oldSetRules["rules"]["children"].index(self.__oldOriginAndCpcode)
 
         #new_rules_children = newSetRules["rules"]["children"].pop(position)
@@ -115,7 +122,7 @@ class rules:
 
         logger.info('rules.createNewSetOfRules(): New set of rules has been created: {}'.format(newSetRules))
 
-        return newSetRules
+        return json.dumps(newSetRules)
 
 
 

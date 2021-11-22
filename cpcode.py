@@ -3,8 +3,9 @@
 from urllib.parse import urljoin
 import re
 
-from logger import get_module_logger
-logger = get_module_logger('debug')
+import logging
+logger = logging.getLogger(__name__)
+
 
 class cpcode:
 
