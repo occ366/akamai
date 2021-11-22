@@ -27,10 +27,10 @@ class connection:
         self.__connect.auth = EdgeGridAuth.from_edgerc(edgerc, self.__section)
 
 
-    def get(self, path, url, headers):
+    def get(self, url, headers):
 
         try:
-            response = connect.get(urljoin(self.__baseurl, url),headers = headers)
+            response = connect.get(urljoin(self.__baseurl, url))
             response.raise_for_status()
             logger.info('connection.get(): Get json for: {}'.format(url))
             return response
@@ -54,7 +54,7 @@ class connection:
     def put(self, url, send_data ,headers):
 
         try:
-            response = connect.get(urljoin(self.__baseurl, url),data=send_data,headers = headers)
+            response = connect.put(urljoin(self.__baseurl, url),data=send_data,headers = headers)
             response.raise_for_status()
             logger.info('connection.put(): Get json for: {}'.format(url))
             return response
@@ -78,7 +78,7 @@ class connection:
     def path(self, url, send_data ,headers):
 
         try:
-            response = connect.get(urljoin(self.__baseurl, url),data=send_data,headers = headers)
+            response = connect.path(urljoin(self.__baseurl, url),data=send_data,headers = headers)
             response.raise_for_status()
             logger.info('connection.path(): Path json for: {}'.format(url))
             return response
@@ -97,3 +97,28 @@ class connection:
 
          except:
              logger.info('connection.path(): Unexpected error..')
+
+
+    def post(self, url, send_data ,headers):
+
+        try:
+            response = connect.post(urljoin(self.__baseurl, url),data=send_data,headers = headers)
+            response.raise_for_status()
+            logger.info('connection.put(): Get json for: {}'.format(url))
+            return response
+
+         except ConnectionError:
+             logger.info('connection.put(): Connection error. Retrying...')
+             sleep(TIME_OUT)
+
+         except Timeout:
+             logger.info(' connection.put(): Timeout. Retrying...')
+             sleep(TIME_OUT)
+
+         except HTTPError:
+             logger.info('connection.put(): HTTP error, Code {}'.format(response.status_code))
+             logger.info('connection.put(): Response: {}'.format(response.json()))
+
+         except:
+             logger.info('connection.put(): Unexpected error..')
+

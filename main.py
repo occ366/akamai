@@ -2,8 +2,7 @@
 
 import requests
 import re
-from akamai.edgegrid import EdgeGridAuth, EdgeRc
-from urllib.parse import urljoin
+from connection import connection
 from cpcode import cpcode
 from hostnames import hostnames
 from rules import rules
@@ -34,18 +33,15 @@ def main():
     productId = 'prd_Adaptive_Media_Delivery'
     versionId='13'
 
-    edgerc = EdgeRc(path_credential)
-    baseurl = 'https://%s' % edgerc.get(section, 'host')
-    connect = requests.Session()
-    connect.auth = EdgeGridAuth.from_edgerc(edgerc, section)
 
+    connect = connection(path_credential,section)
     cp = cpcode(groupId,contractId)
     hn = hostnames(groupId,contractId)
     rl = rules(propietyId,versionId,groupId,contractId)
 
-    cpc.getAll(connect,baseurl,True)
-    hn.getAll(connect,baseurl,True)
-    newChildrens=[]
+    cpc.getAll(connect,True)
+    hn.getAll(connect,True)
+    rl.getAll(connect)
 
     try:
         with open(path_file)  as file :
@@ -60,14 +56,14 @@ def main():
                hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
 
                #create a cpcode for one bucket
-               respose_cpc=cpc.createCPcode(connect,baseurl,productId,name,json=True)
+               respose_cpc=cpc.createCPcode(connect,productId,name,json=True)
                cpcodeID = re.search(r'cpc_\d+', response_cpc['cpcodeLink'])[0]
 
                #build the rules for this  step
                rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
 
 
-    except e:
+    except:
         print('main(): file '+ str(self.__path_file) + ' doesnt exist')
         logger.error('main(): file '+ str(self.__path_file) + ' doesnt exist')
         exit(1)
