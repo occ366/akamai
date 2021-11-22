@@ -26,7 +26,7 @@ logger.addHandler(logger_file_handler)
 
 def main():
 
-    path_file = '/home/ocuellas/prueba_telemadrid.txt'
+    path_file = '/home/ocuellas/buckets_tde_live.txt'
     path_credential='~/.edgerc'
     section = 'jorge'
     groupId='grp_93936'

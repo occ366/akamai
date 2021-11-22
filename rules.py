@@ -61,14 +61,21 @@ class rules:
 
     def addOriginAndCpcode(self,bucketId,name,hostname,cpcodeID):
 
-        """add a new origin and cpcode on Origin & cpcodes """
+        """add a new origin and cpcode on Origin & cpcodes, if not exist """
+        NotExist = True
+        for originAndCpcode in self.__oldOriginAndCpcode["children"]:
 
-        if name in self.__oldOriginAndCpcode["children"]:
-            logger.info('rules.addOriginAndCpcode(): Channel {} already Exist'.format(name))
+            if name in originAndCpcode["name"]:
+                NotExist =  False
+
+
+        if NotExist:
+            self.__newOriginAndCpcode_list.append(self.createJson(bucketId,name,hostname,cpcodeID))
+            logger.info('rules.addOriginAndCpcode():  origin and cpcode for channel {} created'.format(name))
 
         else:
-            self.__newOriginAndCpcode_list.append(self.createJson(bucketId,name,hostname,cpcodeID))
-            logger.info('rules.addOriginAndCpcode(): Add a new origin&cpcode')
+            logger.info('rules.addOriginAndCpcode(): Channel {} already Exist'.format(name))
+
 
 
     def createJson(self,bucketId,name,hostname,cpcodeId):
