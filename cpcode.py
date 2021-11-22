@@ -43,42 +43,32 @@ class cpcode:
         except e:
             logger.error('cpcode.reader(), Error on values') 
 
-    def getAll(self,connection,baseurl,json=True):
+    def getAll(self,connection,json=True):
         """get all propieties in json format"""
         headers = { 'PAPI-Use-Prefixes' : 'true' }
-        response=connection.get(urljoin(baseurl, self.__papiurl),headers = headers)
+        response=connection.get(self.__papiurl,headers = headers)
 
-        if response.status_code != 200:
-             logger.error('cpcode.getAll(): Error code {} on call'.format(response.status_code))
-             logger.error(response.json())
+        self.__allcpcode=response.json()
+
+        if json:
+            """get all propieties in json format"""
+            return response.json()
 
         else:
-            self:__allcpcode=response.json()
-            if json:
-                """get all propieties in json format"""
-                return response.json()
-
-            else:
-                self.reader(response)
+            self.reader(response)
 
 
-    def getCPcode(self,connection,baseurl,cpcodeId,json=True):
+    def getCPcode(self,connection,cpcodeId,json=True):
         """get data for one propiety in json format"""
         papiurl = '/papi/v1/cpcodes/{}?groupId={}&contractId={}'.format(cpcodeId,self.__groupId,self.__contractId)
         headers = { 'PAPI-Use-Prefixes' : 'true' }
 
         response=connection.get(urljoin(baseurl, papiurl),headers=headers)
 
-        if response.status_code != 200:
-            logger.error ('cpcode.getCPcode: Error, code {} on call'.format(response.status_code))
-            logger.error (response.json())
-
+        if json:
+            return response.json()
         else:
-            if json:
-                return response.json()
-
-            else:
-                self.reader(response)
+            self.reader(response)
 
 
     def createCPcode(self,connection,baseurl,productId,cpcodeName,json=True):
@@ -93,21 +83,12 @@ class cpcode:
         else:
 
             """create a new CPcode"""
-            send_data = """
-                          {
-                              "productId": "%s",
-                              "cpcodeName": "%s"
-                          }""" % (productId,cpcodeName)
+            send_data = """{"productId": "%s","cpcodeName": "%s"}""" % (productId,cpcodeName)
 
             headers = { 'Content-Type' : 'application/json' , 'PAPI-Use-Prefixes' : 'true' }
-            response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
+            response = connection.put(self.__papiurl),data=send_data,headers=headers)
 
-            if response.status_code != 201:
-                logger.error('cpcode.createCPcode(): Error, code {} on call'.format(response.status_code))
-                logger.error(response.json())
-
-            else:
-                return response.json()
+            return response.json()
 
 
     def checkIfExist(self,cpcodeName):
