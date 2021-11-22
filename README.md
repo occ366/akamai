@@ -1,6 +1,6 @@
 # akamai
 
-set of modules to connect to papi akamai apis for managment
+Set of modules to connect to papi akamai apis for managment
 
 __python3 is needed
 
@@ -20,7 +20,7 @@ __python3 is needed
 
 ## modules dependencies
 
-__must be installed in your system
+__Must be installed in your system
 
 - requests
 - re
@@ -30,10 +30,10 @@ __must be installed in your system
 
 ## Inputs
 
-- file with all the channels, format unix; bucketId, bucket_description(name), hosts
+- File with all the channels, format unix; bucketId, bucket_description(name), hosts
 - User credential in file .edgerc
 
 ## Outputs
 
-main create a log file on /tmp/akamai_papi.log by default
+Main create a log file on /tmp/akamai_papi.log by default
 
