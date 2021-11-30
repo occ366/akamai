@@ -10,7 +10,7 @@ from logging import Formatter
 import logging
 logger = logging.getLogger(__name__)
 
-class hostnames:
+class Hostnames:
 
     def __init__(self,groupId,contractId):
 
@@ -42,7 +42,7 @@ class hostnames:
             logger.error('hostnames.reader(), Error on values')
 
 
-    def getAll(self,connection,baseurl,json=True):
+    def get_all(self,connection,baseurl,json=True):
 
         response=connection.get(urljoin(baseurl, self.__papiurl))
 
@@ -62,13 +62,13 @@ class hostnames:
                 self.reader(response)
 
 
-    def createHostname(self,connection,baseurl,productId,domain):
+    def create_hostname(self,connection,baseurl,productId,domain):
 
-        if self.checkIfExist(domain):
-            logger.info("hostname.createHostname(): Domain {} exists already!!!".format(domain))
+        if self.check_if_exist(domain):
+            logger.info("hostname.create_hostname(): Domain {} exists already!!!".format(domain))
 
         else:
-            """get data for one propiety in json format"""
+            
             papiurl = "/papi/v1/edgehostnames?groupId={}&contractId={}".format(self.__groupId,self.__contractId)
 
             send_data = """
@@ -84,15 +84,16 @@ class hostnames:
             response = connection.post(urljoin(baseurl, self.__papiurl),data=send_data,headers=headers)
 
             if response.status_code != 201:
-                logger.error ('hostname.createHostname(): Error, code {} on call'.format(response.status_code))
+                logger.error ('hostname.create_hostname(): Error, code {} on call'.format(response.status_code))
                 logger.error (response.json())
 
             else:
-                logger.info ('hostname.createHostname(): Hostname create: {}'.format(domain))
+                logger.info ('hostname.create_hostname(): Hostname create: {}'.format(domain))
 
 
 
-    def checkIfExist(self,domain):
+    def check_if_exist(self,domain):
+
         """ check if the hostname exist  """
 
         for edgehostname in self.__allhostnames['edgeHostnames']['items']:
@@ -102,7 +103,8 @@ class hostnames:
         return False
 
 
-    def addHostnameToPropiety(self,connection,baseurl,propietyId,versionId,domain):
+    def add_hostname_to_propiety(self,connection,baseurl,propietyId,versionId,domain):
+        
         """ add a create hostname to a version of one propiety  """
 
         papiurl = "/papi/v1/properties/{}/versions/{}/hostnames?groupId={}&contractId={}&validateHostnames=true&includeCertStatus=true"\
@@ -122,7 +124,7 @@ class hostnames:
             logger.info('hostname.addHostnameToPropiety(): hostname added: {}'.format(domain))
 
 
-    def getHostname(connection,baseurl,edgeHostnameId,contractId,groupId,options):
+    def get_hostname(connection,baseurl,edgeHostnameId,contractId,groupId,options):
         """ get data of one edgeHostname """
         pass
         #TO DO

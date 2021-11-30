@@ -2,7 +2,7 @@
 
 from urllib.parse import urljoin
 
-class propieties:
+class Propieties:
 
     def __init__(self,groupId,contractId):
         self.__groupId = groupId
@@ -41,8 +41,10 @@ class propieties:
                                            propiety['assetId'])
             )
 
-    def getAll(self,connection,baseurl,json=True):
+    def get_all(self,connection,baseurl,json=True):
+
         """ get all propieties """
+        
         response=connection.get(urljoin(baseurl, self.__papiurl),headers=self.__headers)
 
         if response.status_code != 200:
@@ -56,8 +58,11 @@ class propieties:
             else:
                 self.reader(response)
 
-    def getPropiety(self,connection,baseurl,propietyId,json=True):
+
+    def get_propiety(self,connection,baseurl,propietyId,json=True):
+
         """get data for one propiety in json format"""
+
         papiurl = '/papi/v1/properties/{}?groupId={}&contractId={}'.format(propietyId,self.__groupId,self.__contractId)
         response = connection.get(urljoin(baseurl, papiurl),headers=self.__headers)
 
