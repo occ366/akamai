@@ -66,20 +66,22 @@ def main():
                  bucketId,name,hostname = line.split()
                  hostname=re.sub('[\["\]]','',hostname)
 
-                 logger.info('updating bucket: {}'.format(bucketId))
+                 if bucketId.isnumeric() and re.search(r'\.',hostname):
 
+                     logger.info('updating bucket: {}'.format(bucketId))
+                     #create hostname and add to the propiety
+                     hn.create_hostname(connect,baseurl,productId,hostname)
+                     hn.add_hostname_to_propiety(connect,baseurl,propietyId,versionId,hostname)
 
-                 #create hostname and add to the propiety
-                 hn.create_hostname(connect,baseurl,productId,hostname)
-                 hn.add_hostname_to_propiety(connect,baseurl,propietyId,versionId,hostname)
+                     #create a cpcode for one bucket
+                     cpcodeID = cpc.create_CPCode(connect,baseurl,productId,name)
 
-                 #create a cpcode for one bucket
-                 cpcodeID = cpc.create_CPCode(connect,baseurl,productId,name)
+                     #build the rules for this  step
+                     rl.add_origin_and_CPCode(bucketId,name,hostname,cpcodeID)
 
-                 #build the rules for this  step
-                 rl.add_origin_and_CPCode(bucketId,name,hostname,cpcodeID)
+                 else:
 
-
+                     logger.info('Wrong format on bucketID: {} or hostname {}'.format(bucketId,hostname))
 
     except:
         logger.error('main(): file {} doesnt exist'.format(path_file))
