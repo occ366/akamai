@@ -4,9 +4,9 @@ import requests
 import re
 from akamai.edgegrid import EdgeGridAuth, EdgeRc
 from urllib.parse import urljoin
-from cpcode import cpcode
-from hostnames import hostnames
-from rules import rules
+from cpcode import CPCode
+from hostnames import Hostnames
+from rules import Rules
 
 import logging
 
@@ -44,9 +44,9 @@ def main():
 
     try:
 
-        cpc = cpcode(groupId,contractId)
-        hn = hostnames(groupId,contractId)
-        rl = rules(propietyId,versionId,groupId,contractId)
+        cpc = CPCode(groupId,contractId)
+        hn = Hostnames(groupId,contractId)
+        rl = Rules(propietyId,versionId,groupId,contractId)
 
     except:
 
@@ -54,9 +54,9 @@ def main():
 
     logger.info('Getting al the Json and info needed from Akamai')
 
-    cpc.getAll(connect,baseurl,True)
-    hn.getAll(connect,baseurl,True)
-    rl.getAll(connect,baseurl)
+    cpc.get_all(connect,baseurl,True)
+    hn.get_all(connect,baseurl,True)
+    rl.get_all(connect,baseurl)
 
     try:
         with open(path_file)  as file :
@@ -70,14 +70,14 @@ def main():
 
 
                  #create hostname and add to the propiety
-                 hn.createHostname(connect,baseurl,productId,hostname)
-                 hn.addHostnameToPropiety(connect,baseurl,propietyId,versionId,hostname)
+                 hn.create_hostname(connect,baseurl,productId,hostname)
+                 hn.add_hostname_to_propiety(connect,baseurl,propietyId,versionId,hostname)
 
                  #create a cpcode for one bucket
-                 cpcodeID = cpc.createCPcode(connect,baseurl,productId,name)
+                 cpcodeID = cpc.create_CPCode(connect,baseurl,productId,name)
 
                  #build the rules for this  step
-                 rl.addOriginAndCpcode(bucketId,name,hostname,cpcodeID)
+                 rl.add_origin_and_CPCode(bucketId,name,hostname,cpcodeID)
 
 
 
@@ -86,7 +86,7 @@ def main():
         exit(1)
 
     #update the new rules on the propiety.
-    rl.createSetRules(connect,baseurl)
+    rl.create_set_rules(connect,baseurl)
 
     logger.info('----- End execution ------')
 
