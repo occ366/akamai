@@ -3,18 +3,17 @@
 from urllib.parse import urljoin
 import json
 import re
-
 import logging
 logger = logging.getLogger(__name__)
 
 class Rules:
-
     def __init__(self,propietyId,versionId,groupId,contractId):
         self.__groupId = groupId
         self.__contractId = contractId
         self.__versionId=versionId
         self.__propietyId = propietyId
         self.__papiurl="/papi/v1/properties/{}/versions/{}/rules?groupId={}&contractId={}".format(propietyId,versionId,groupId,contractId)
+
 
     def get_all(self,connection,baseurl):
         response=connection.get(urljoin(baseurl, self.__papiurl))
@@ -38,11 +37,9 @@ class Rules:
         headers = { 'Accept':'*/*' , 'Accept-Encoding':'gzip, deflate, br' , 'Content-Type':'application/json' , 'PAPI-Use-Prefixes':'true' }
         send_data = self.create_new_set_of_rules()
         response = connection.put(urljoin(baseurl, papiurl),data=send_data,headers=headers)
-
         if response.status_code != 201:
             logger.error('rules.create_set_rules(): Error, code {} on call'.format(response.status_code))
             logger.error(response.json())
-
         else:
             logger.info('rules.create_set_rules(): Create a new set of rules')
             logger.info(response.json())
@@ -57,7 +54,6 @@ class Rules:
         if NotExist:
             self.__newOriginAndCpcode_list.append(self.create_json(bucketId,name,hostname,cpcodeID))
             logger.info('rules.add_origin_and_CPCode():  origin and cpcode for channel {} created'.format(name))
-
         else:
             logger.info('rules.add_origin_and_CPCode(): Channel {} already Exist'.format(name))
 
@@ -93,12 +89,10 @@ class Rules:
                 newSetRules["rules"]["children"][index]=newOriginAndCpcode
             else:
                 index+=1
-
         newSetRules['warnings']=[]
         newSetRules['errors']=[]
         logger.info('rules.create_new_set_of_rules(): New set of rules has been created: {}'.format(newSetRules))
         return json.dumps(newSetRules)
-
 
 
     def getCreatedOriginAndCpcodes(self):
