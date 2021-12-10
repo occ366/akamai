@@ -26,12 +26,12 @@ logger.addHandler(logger_file_handler)
 
 def main():
 
-    path_file = '/home/ocuellas/buckets_tde_live_SS.txt'
+    path_file = '/home/ocuellas/buckets_tde_live_HLSv4.txt'
     path_credential='~/.edgerc'
     section = 'jorge'
     groupId='grp_93936'
     contractId='ctr_M-20JBZC4'
-    propietyId='prp_759116'
+    propietyId='prp_759112'
     productId = 'prd_Adaptive_Media_Delivery'
     versionId='1'
 

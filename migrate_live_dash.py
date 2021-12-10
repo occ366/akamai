@@ -26,12 +26,12 @@ logger.addHandler(logger_file_handler)
 
 def main():
 
-    path_file = '/home/ocuellas/buckets_tde_live_SS.txt'
+    path_file = '/home/ocuellas/buckets_tde_live_DASH.txt'
     path_credential='~/.edgerc'
     section = 'jorge'
     groupId='grp_93936'
     contractId='ctr_M-20JBZC4'
-    propietyId='prp_759116'
+    propietyId='prp_758752'
     productId = 'prd_Adaptive_Media_Delivery'
     versionId='1'
 
@@ -58,26 +58,26 @@ def main():
     hn.get_all(connect,baseurl,True)
     rl.get_all(connect,baseurl)
 
-    try:
-        with open(path_file)  as file :
-            for line in file.readlines():
-                bucketId,name,hostname = line.split()
-                hostname=re.sub('[\["\]]','',hostname)
-                if bucketId.isnumeric() and re.search(r'\.',hostname):
-                   logger.info('updating bucket: {}'.format(bucketId))
-                   #create hostname and add to the propiety
-                   hn.create_hostname(connect,baseurl,productId,hostname)
-                   hn.add_hostname_to_propiety(connect,baseurl,propietyId,versionId,hostname)
-                   #create a cpcode for one bucket
-                   cpcodeID = cpc.create_CPCode(connect,baseurl,productId,name)
-                   #build the rules for this  step
-                   rl.add_origin_and_CPCode(bucketId,name,hostname,cpcodeID)
-                else:
-                   logger.info('Wrong format on bucketID: {} or hostname {}'.format(bucketId,hostname))
+    #try:
+    with open(path_file)  as file :
+         for line in file.readlines():
+             bucketId,name,hostname = line.split()
+             hostname=re.sub('[\["\]]','',hostname)
+             if bucketId.isnumeric() and re.search(r'\.',hostname):
+                 logger.info('updating bucket: {}'.format(bucketId))
+                 #create hostname and add to the propiety
+                 hn.create_hostname(connect,baseurl,productId,hostname)
+                 hn.add_hostname_to_propiety(connect,baseurl,propietyId,versionId,hostname)
+                 #create a cpcode for one bucket
+                 cpcodeID = cpc.create_CPCode(connect,baseurl,productId,name)
+                 #build the rules for this  step
+                 rl.add_origin_and_CPCode(bucketId,name,hostname,cpcodeID)
+             else:
+                 logger.info('Wrong format on bucketID: {} or hostname {}'.format(bucketId,hostname))
 
-    except:
-        logger.error('main(): file {} doesnt exist'.format(path_file))
-        exit(1)
+    #except:
+    #    logger.error('main(): file {} doesnt exist'.format(path_file))
+    #    exit(1)
 
     #update the new rules on the propiety.
     rl.create_set_rules(connect,baseurl)
@@ -87,3 +87,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
